@@ -31,10 +31,12 @@ const SYSTEM_PROMPT = `You are a product pricing assistant for Australia. Your j
 CRITICAL RULES:
 - Prices MUST be in AUD. Use your best knowledge of Australian retail pricing as of your training cutoff.
 - Be as precise as possible for the exact model/SKU given. Do not guess or round up to a convenient number.
-- Kogan is typically 5–15% cheaper than JB Hi-Fi on electronics
 - Harvey Norman tends to be at or slightly above RRP
+- The Good Guys is usually within 2–5% of JB Hi-Fi
 - Amazon AU is often 3–10% below JB Hi-Fi
-- For cameras and photo gear: Camera Electronic, Ted's Cameras, JB Hi-Fi, Harvey Norman are main retailers
+- Bing Lee is usually close to JB Hi-Fi pricing
+- For cameras and photo gear: JB Hi-Fi, Harvey Norman, The Good Guys, Amazon AU are main retailers. Officeworks does NOT sell cameras — set its price to 0 if the product is not sold there.
+- IMPORTANT: If a store does not carry that type of product, set its price to 0. The app will automatically hide $0 entries.
 - Do NOT invent stock URLs — leave the url field blank ("") — the app will build correct search links automatically
 - trendDirection: "down" if product recently got a price cut, "up" if recently increased, "stable" if no change
 - Return ONLY valid JSON, no markdown, no commentary`
@@ -100,12 +102,12 @@ Return this exact JSON (raw JSON only, no markdown):
       "category": "Category",
       "description": "2-3 sentence description of what makes this product notable",
       "currentPrices": [
-        { "shop": "JB Hi-Fi",      "price": 0.00, "currency": "AUD", "inStock": true,  "url": "", "lastUpdated": "${now}", "shipping": "Free",  "rating": 4.6, "reviews": 850 },
-        { "shop": "Harvey Norman", "price": 0.00, "currency": "AUD", "inStock": true,  "url": "", "lastUpdated": "${now}", "shipping": "Free"  },
-        { "shop": "Kogan",         "price": 0.00, "currency": "AUD", "inStock": true,  "url": "", "lastUpdated": "${now}", "shipping": "$9.90" },
-        { "shop": "Amazon AU",     "price": 0.00, "currency": "AUD", "inStock": true,  "url": "", "lastUpdated": "${now}", "shipping": "Free"  },
-        { "shop": "The Good Guys", "price": 0.00, "currency": "AUD", "inStock": true,  "url": "", "lastUpdated": "${now}", "shipping": "Free"  },
-        { "shop": "Officeworks",   "price": 0.00, "currency": "AUD", "inStock": false, "url": "", "lastUpdated": "${now}", "shipping": "Free"  }
+        { "shop": "JB Hi-Fi",      "price": 0.00, "currency": "AUD", "inStock": true, "url": "", "lastUpdated": "${now}", "shipping": "Free", "rating": 4.6, "reviews": 850 },
+        { "shop": "Harvey Norman", "price": 0.00, "currency": "AUD", "inStock": true, "url": "", "lastUpdated": "${now}", "shipping": "Free" },
+        { "shop": "The Good Guys", "price": 0.00, "currency": "AUD", "inStock": true, "url": "", "lastUpdated": "${now}", "shipping": "Free" },
+        { "shop": "Amazon AU",     "price": 0.00, "currency": "AUD", "inStock": true, "url": "", "lastUpdated": "${now}", "shipping": "Free" },
+        { "shop": "Bing Lee",      "price": 0.00, "currency": "AUD", "inStock": true, "url": "", "lastUpdated": "${now}", "shipping": "Free" },
+        { "shop": "Officeworks",   "price": 0.00, "currency": "AUD", "inStock": true, "url": "", "lastUpdated": "${now}", "shipping": "Free" }
       ],
       "allTimeLow": 0.00,
       "allTimeHigh": 0.00,
@@ -129,13 +131,15 @@ Return 1–3 most relevant results. Leave url as "" — the app will generate th
 
   const products: Partial<ProductDetail>[] = (parsed.products || []).map(
     (p: Partial<ProductDetail> & { currentPrices?: ShopPrice[] }) => {
-      const prices = (p.currentPrices || []).map((s: ShopPrice) => ({
-        ...s,
-        // Always override with a real search URL regardless of what Groq returned
-        url: getShopSearchUrl(s.shop, p.name || ''),
-      }))
+      const prices = (p.currentPrices || [])
+        // Drop any entry where Groq returned $0 (store doesn't carry the product)
+        .filter((s: ShopPrice) => s.price > 0)
+        .map((s: ShopPrice) => ({
+          ...s,
+          url: getShopSearchUrl(s.shop, p.name || ''),
+        }))
 
-      const priceValues = prices.map((s) => s.price).filter(Boolean)
+      const priceValues = prices.map((s) => s.price)
       const lowestPrice = priceValues.length ? Math.min(...priceValues) : 0
       const sorted = [...prices].sort((a, b) => a.price - b.price)
 
