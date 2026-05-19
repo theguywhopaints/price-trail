@@ -1,12 +1,9 @@
 import Groq from 'groq-sdk'
 import { ProductDetail, ShopPrice } from './types'
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
-
-const AU_RETAILERS = [
-  'JB Hi-Fi', 'Harvey Norman', 'Kogan', 'Officeworks',
-  'The Good Guys', 'Amazon AU', 'Bing Lee', 'Big W',
-]
+function getGroq() {
+  return new Groq({ apiKey: process.env.GROQ_API_KEY || 'placeholder' })
+}
 
 const SYSTEM_PROMPT = `You are a product price database for Australia. When asked to search for products, return accurate JSON with realistic AUD retail prices from major Australian stores (JB Hi-Fi, Harvey Norman, Kogan, Officeworks, The Good Guys, Amazon AU, Bing Lee, Big W, Costco AU).
 
@@ -23,7 +20,7 @@ Rules:
 - Generate realistic 12-month price history with seasonal dips (Boxing Day, Click Frenzy, EOFY sales in June)
 - Respond ONLY with valid JSON, no markdown, no explanation`
 
-function generateGroqHistory(basePrice: number, trend: string): Array<{ date: string; price: number; shop: string }> {
+function generateGroqHistory(basePrice: number): Array<{ date: string; price: number; shop: string }> {
   const points = []
   const now = new Date()
   let price = basePrice * 1.2
@@ -66,7 +63,7 @@ export async function searchWithGroq(query: string): Promise<GroqSearchResult> {
 
   const now = new Date().toISOString()
 
-  const completion = await groq.chat.completions.create({
+  const completion = await getGroq().chat.completions.create({
     model: 'llama-3.3-70b-versatile',
     messages: [
       { role: 'system', content: SYSTEM_PROMPT },
@@ -118,7 +115,7 @@ Return 1–3 most relevant products. Fill in all prices with real AUD values.`,
     return {
       ...p,
       currentPrices: prices,
-      priceHistory: generateGroqHistory(lowestPrice || p.averagePrice || 100, p.trendDirection || 'stable'),
+      priceHistory: generateGroqHistory(lowestPrice || p.averagePrice || 100),
       bestDeal: prices.sort((a: ShopPrice, b: ShopPrice) => a.price - b.price)[0],
     }
   })

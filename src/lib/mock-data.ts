@@ -1,4 +1,4 @@
-import { ProductDetail, ShopPrice, PricePoint } from './types'
+import { ProductDetail, PricePoint } from './types'
 
 function generateHistory(basePrice: number, days: number, volatility = 0.04): PricePoint[] {
   const points: PricePoint[] = []

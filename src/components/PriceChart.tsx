@@ -12,7 +12,7 @@ import {
   ReferenceLine,
 } from 'recharts'
 import { PricePoint } from '@/lib/types'
-import { format, subDays, subMonths, subYears } from 'date-fns'
+import { format, subDays } from 'date-fns'
 
 interface Props {
   history: PricePoint[]

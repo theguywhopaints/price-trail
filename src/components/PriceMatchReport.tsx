@@ -14,10 +14,6 @@ function fmt(price: number) {
   return new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(price)
 }
 
-const AU_MAJOR_RETAILERS = [
-  'JB Hi-Fi', 'Harvey Norman', 'Officeworks', 'The Good Guys',
-  'Bing Lee', 'Big W', 'Target AU', 'Kogan', 'Amazon AU', 'Costco AU',
-]
 
 export default function PriceMatchReport({ productName, prices, targetShop }: Props) {
   const [selectedShop, setSelectedShop] = useState(targetShop || prices[0]?.shop || '')

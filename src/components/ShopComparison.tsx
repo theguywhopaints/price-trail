@@ -2,11 +2,10 @@
 
 import { useState } from 'react'
 import { ShopPrice } from '@/lib/types'
-import { ExternalLink, Star, Package, Truck, MapPin } from 'lucide-react'
+import { ExternalLink, Star, Truck, MapPin } from 'lucide-react'
 
 interface Props {
   prices: ShopPrice[]
-  bestDealShop?: string
 }
 
 function fmt(price: number) {
@@ -35,7 +34,7 @@ function ShopBadge({ name }: { name: string }) {
   )
 }
 
-export default function ShopComparison({ prices, bestDealShop }: Props) {
+export default function ShopComparison({ prices }: Props) {
   const [showAll, setShowAll] = useState(false)
   const [filter, setFilter] = useState<'all' | 'major' | 'local'>('all')
 

@@ -36,7 +36,7 @@ export default function ProductPage() {
     } catch {}
 
     loadProduct()
-  }, [id])
+  }, [id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function loadProduct() {
     setLoading(true)
@@ -153,7 +153,7 @@ export default function ProductPage() {
       <div className="max-w-7xl mx-auto px-4 py-20 text-center">
         <p className="text-5xl mb-4">😕</p>
         <h1 className="text-2xl font-bold text-white mb-3">Product not found</h1>
-        <p className="text-gray-400 mb-6">We couldn't find pricing data for this product.</p>
+        <p className="text-gray-400 mb-6">We could not find pricing data for this product.</p>
         <Link href="/" className="text-blue-400 hover:underline">← Back to search</Link>
       </div>
     )
@@ -222,10 +222,7 @@ export default function ProductPage() {
             allTimeHigh={product.allTimeHigh}
           />
 
-          <ShopComparison
-            prices={product.currentPrices}
-            bestDealShop={product.bestDeal?.shop}
-          />
+          <ShopComparison prices={product.currentPrices} />
 
           {/* Price Match Report */}
           {product.currentPrices.length > 1 && (
