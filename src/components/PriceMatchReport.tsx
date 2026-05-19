@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { ShopPrice } from '@/lib/types'
 import { FileText, Download, TrendingDown, AlertCircle, CheckCircle2, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react'
+import { getShopSearchUrl } from '@/lib/groq'
 
 interface Props {
   productName: string
@@ -155,7 +156,7 @@ export default function PriceMatchReport({ productName, prices, targetShop }: Pr
                   <p className="text-gray-400 text-sm mt-1">
                     Reduce your price from <strong className="text-white">{fmt(myShopPrice!.price)}</strong> to{' '}
                     <strong className="text-green-400">{fmt(lowestCompetitor.price)}</strong> to match{' '}
-                    <a href={lowestCompetitor.url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline inline-flex items-center gap-1">
+                    <a href={getShopSearchUrl(lowestCompetitor.shop, productName)} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline inline-flex items-center gap-1">
                       {lowestCompetitor.shop} <ExternalLink size={11} />
                     </a>
                   </p>
@@ -185,7 +186,7 @@ export default function PriceMatchReport({ productName, prices, targetShop }: Pr
                     }`}>
                       {fmt(p.price)}
                     </span>
-                    <a href={p.url} target="_blank" rel="noopener noreferrer" className="text-gray-600 hover:text-blue-400 transition-colors">
+                    <a href={getShopSearchUrl(p.shop, productName)} target="_blank" rel="noopener noreferrer" title={`Search on ${p.shop}`} className="text-gray-600 hover:text-blue-400 transition-colors">
                       <ExternalLink size={13} />
                     </a>
                   </div>

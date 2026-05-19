@@ -10,6 +10,7 @@ import { MOCK_PRODUCTS } from '@/lib/mock-data'
 import PriceStats from '@/components/PriceStats'
 import ShopComparison from '@/components/ShopComparison'
 import PriceMatchReport from '@/components/PriceMatchReport'
+import { getShopSearchUrl } from '@/lib/groq'
 
 // Dynamic import to avoid SSR issues with Recharts
 const PriceChart = dynamic(() => import('@/components/PriceChart'), { ssr: false })
@@ -222,7 +223,11 @@ export default function ProductPage() {
             allTimeHigh={product.allTimeHigh}
           />
 
-          <ShopComparison prices={product.currentPrices} />
+          <ShopComparison
+            prices={product.currentPrices}
+            productName={product.name}
+            priceSource={source}
+          />
 
           {/* Price Match Report */}
           {product.currentPrices.length > 1 && (
@@ -292,7 +297,7 @@ export default function ProductPage() {
               {product.currentPrices.slice(0, 4).map((shop, i) => (
                 <a
                   key={i}
-                  href={shop.url}
+                  href={getShopSearchUrl(shop.shop, product.name)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-800 transition-colors"

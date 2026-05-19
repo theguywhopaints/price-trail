@@ -2,10 +2,12 @@
 
 import { useState } from 'react'
 import { ShopPrice } from '@/lib/types'
-import { ExternalLink, Star, Truck, MapPin } from 'lucide-react'
+import { ExternalLink, Star, Truck, MapPin, AlertCircle } from 'lucide-react'
 
 interface Props {
   prices: ShopPrice[]
+  productName?: string
+  priceSource?: string
 }
 
 function fmt(price: number) {
@@ -34,7 +36,7 @@ function ShopBadge({ name }: { name: string }) {
   )
 }
 
-export default function ShopComparison({ prices }: Props) {
+export default function ShopComparison({ prices, productName = '', priceSource }: Props) {
   const [showAll, setShowAll] = useState(false)
   const [filter, setFilter] = useState<'all' | 'major' | 'local'>('all')
 
@@ -49,6 +51,15 @@ export default function ShopComparison({ prices }: Props) {
 
   return (
     <div className="bg-gray-900 rounded-2xl p-6 border border-gray-800">
+      {priceSource === 'groq' && (
+        <div className="flex items-start gap-2 mb-4 p-3 bg-yellow-500/8 border border-yellow-500/20 rounded-xl">
+          <AlertCircle size={14} className="text-yellow-400 flex-shrink-0 mt-0.5" />
+          <p className="text-yellow-300/80 text-xs leading-relaxed">
+            <strong className="text-yellow-300">AI-estimated prices</strong> — based on Groq&apos;s training data and may not reflect today&apos;s exact prices. Click the search button next to each store to verify the live price before purchasing.
+          </p>
+        </div>
+      )}
+
       <div className="flex items-center justify-between mb-5">
         <h3 className="text-white font-bold text-lg">Compare Prices</h3>
         <div className="flex gap-1 bg-gray-800 rounded-lg p-1">
@@ -137,14 +148,16 @@ export default function ShopComparison({ prices }: Props) {
                 )}
               </div>
 
-              {/* Link */}
+              {/* Link — goes to product search on that retailer's site */}
               <a
                 href={shop.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-shrink-0 w-9 h-9 bg-gray-700 hover:bg-blue-600 rounded-xl flex items-center justify-center transition-colors"
+                title={`Search "${productName}" on ${shop.shop}`}
+                className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 bg-gray-700 hover:bg-blue-600 rounded-xl transition-colors group"
               >
-                <ExternalLink size={14} className="text-gray-300" />
+                <ExternalLink size={13} className="text-gray-300" />
+                <span className="text-gray-300 text-xs font-medium hidden sm:block">View</span>
               </a>
             </div>
           )
