@@ -21,6 +21,7 @@ export interface ShopPrice {
   shipping?: string
   rating?: number
   reviews?: number
+  estimated?: boolean  // true when price is AI-estimated, not scraped live
 }
 
 export interface PricePoint {

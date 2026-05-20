@@ -10,77 +10,72 @@ const HEADERS = {
   'Connection': 'keep-alive',
 }
 
-// Scrape PriceHipster (Australian price comparison)
-export async function fetchPriceHipster(query: string): Promise<ShopPrice[]> {
-  try {
-    const url = `https://www.pricehipster.com/search?q=${encodeURIComponent(query)}`
-    const res = await axios.get(url, { headers: HEADERS, timeout: 8000 })
-    const $ = cheerio.load(res.data)
-    const results: ShopPrice[] = []
-
-    // PriceHipster product cards
-    $('.search-result, .product-item, [data-price]').each((_, el) => {
-      const shop = $(el).find('.merchant-name, .shop-name, [class*="merchant"]').first().text().trim()
-      const priceText = $(el).find('.price, [class*="price"]').first().text().trim()
-      const link = $(el).find('a').first().attr('href') || '#'
-      const price = parseFloat(priceText.replace(/[^0-9.]/g, ''))
-
-      if (shop && price > 0) {
-        results.push({
-          shop,
-          price,
-          currency: 'AUD',
-          inStock: true,
-          url: link.startsWith('http') ? link : `https://www.pricehipster.com${link}`,
-          lastUpdated: new Date().toISOString(),
-          shipping: 'Check site',
-        })
-      }
-    })
-
-    return results.filter((r) => r.price > 0).slice(0, 10)
-  } catch {
-    return []
-  }
+// StaticIce date format: "DD-MM-YYYY" → ISO string
+function parseStaticIceDate(ddmmyyyy: string): string {
+  const [d, m, y] = ddmmyyyy.split('-')
+  return `${y}-${m}-${d}T00:00:00.000Z`
 }
 
-// Scrape StaticIce (Australian price comparison)
+// Scrape StaticIce (Australian price comparison — server-rendered, reliable)
 export async function fetchStaticIce(query: string): Promise<ShopPrice[]> {
   try {
     const url = `https://www.staticice.com.au/cgi-bin/search.cgi?q=${encodeURIComponent(query)}&stype=1`
-    const res = await axios.get(url, { headers: HEADERS, timeout: 8000 })
+    const res = await axios.get(url, { headers: HEADERS, timeout: 10000 })
     const $ = cheerio.load(res.data)
-    const results: ShopPrice[] = []
+    const raw: ShopPrice[] = []
 
-    $('table.search-result tr, .product-row').each((_, el) => {
-      const cells = $(el).find('td')
-      if (cells.length >= 3) {
-        const shop = $(cells[0]).text().trim()
-        const priceText = $(cells[1]).text().trim()
-        const link = $(cells[0]).find('a').attr('href') || '#'
-        const price = parseFloat(priceText.replace(/[^0-9.]/g, ''))
+    // Each product row is <tr valign="top"> with two <td> children
+    $('tr[valign="top"]').each((_, row) => {
+      const tds = $(row).find('> td')
+      if (tds.length < 2) return
 
-        if (shop && price > 0) {
-          results.push({
-            shop,
-            price,
-            currency: 'AUD',
-            inStock: true,
-            url: link.startsWith('http') ? link : `https://www.staticice.com.au${link}`,
-            lastUpdated: new Date().toISOString(),
-            shipping: 'Check site',
-          })
-        }
-      }
+      const priceLink = $(tds[0]).find('a[alt]').first()
+      const priceText = priceLink.text().trim()
+      const price = parseFloat(priceText.replace(/[^0-9.]/g, ''))
+      if (!price || price <= 0) return
+
+      // Shop name is before the first ":" in the alt attribute
+      const altText = priceLink.attr('alt') || ''
+      const shopName = altText.split(':')[0].trim()
+      if (!shopName) return
+
+      // Decode the real product URL from the redirect href
+      const redirectHref = priceLink.attr('href') || ''
+      const newurlMatch = redirectHref.match(/newurl=([^&]+)/)
+      const productUrl = newurlMatch ? decodeURIComponent(newurlMatch[1]) : ''
+
+      // "updated: DD-MM-YYYY" inside the description cell
+      const descText = $(tds[1]).text()
+      const updatedMatch = descText.match(/updated:\s*(\d{2}-\d{2}-\d{4})/)
+      const lastUpdated = updatedMatch ? parseStaticIceDate(updatedMatch[1]) : new Date().toISOString()
+
+      raw.push({
+        shop: shopName,
+        price,
+        currency: 'AUD',
+        inStock: true,
+        url: productUrl,
+        lastUpdated,
+        shipping: 'Check site',
+      })
     })
 
-    return results.filter((r) => r.price > 0).slice(0, 10)
+    // Deduplicate by shop — keep the best (lowest) price per store
+    const byShop = new Map<string, ShopPrice>()
+    for (const entry of raw) {
+      const existing = byShop.get(entry.shop)
+      if (!existing || entry.price < existing.price) {
+        byShop.set(entry.shop, entry)
+      }
+    }
+
+    return Array.from(byShop.values()).sort((a, b) => a.price - b.price)
   } catch {
     return []
   }
 }
 
-// Serper.dev Google Shopping API
+// Scrape Google Shopping via Serper.dev (requires SERPER_API_KEY)
 export async function fetchGoogleShoppingPrices(query: string): Promise<ShopPrice[]> {
   const apiKey = process.env.SERPER_API_KEY
   if (!apiKey) return []
@@ -88,7 +83,7 @@ export async function fetchGoogleShoppingPrices(query: string): Promise<ShopPric
   try {
     const res = await axios.post(
       'https://google.serper.dev/shopping',
-      { q: query, gl: 'us', hl: 'en', num: 20 },
+      { q: query, gl: 'au', hl: 'en-AU', num: 20 },
       { headers: { 'X-API-KEY': apiKey, 'Content-Type': 'application/json' }, timeout: 8000 }
     )
 
@@ -96,7 +91,7 @@ export async function fetchGoogleShoppingPrices(query: string): Promise<ShopPric
     return items.slice(0, 12).map((item: Record<string, unknown>) => ({
       shop: (item.source as string) || 'Unknown',
       price: parseFloat(((item.price as string) || '0').replace(/[^0-9.]/g, '')) || 0,
-      currency: 'USD',
+      currency: 'AUD',
       originalPrice: item.oldPrice ? parseFloat(((item.oldPrice as string) || '').replace(/[^0-9.]/g, '')) : undefined,
       discount: item.discount ? parseInt(String(item.discount)) : undefined,
       inStock: true,
@@ -120,7 +115,6 @@ export async function fetchCamelHistory(asin: string): Promise<PricePoint[]> {
 
     const points: PricePoint[] = []
 
-    // Extract current price data points from the page scripts
     $('script').each((_, el) => {
       const content = $(el).html() || ''
       const match = content.match(/amazon_prices\s*=\s*(\[[\s\S]*?\])/)
@@ -156,7 +150,7 @@ export async function searchProductsOnline(query: string): Promise<Product[]> {
   try {
     const res = await axios.post(
       'https://google.serper.dev/shopping',
-      { q: query, gl: 'us', hl: 'en', num: 10 },
+      { q: query, gl: 'au', hl: 'en-AU', num: 10 },
       { headers: { 'X-API-KEY': apiKey, 'Content-Type': 'application/json' }, timeout: 8000 }
     )
 

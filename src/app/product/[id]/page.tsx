@@ -175,7 +175,7 @@ export default function ProductPage() {
           )}
           {source === 'live' && (
             <span className="flex items-center gap-1.5 text-green-400 text-xs bg-green-400/10 border border-green-400/20 px-3 py-1.5 rounded-full">
-              <Globe2 size={12} /> Live scraped
+              <Globe2 size={12} /> Live prices
             </span>
           )}
           {source === 'demo' && (

@@ -41,7 +41,7 @@ CRITICAL RULES:
 - trendDirection: "down" if product recently got a price cut, "up" if recently increased, "stable" if no change
 - Return ONLY valid JSON, no markdown, no commentary`
 
-function generateGroqHistory(basePrice: number): Array<{ date: string; price: number; shop: string }> {
+export function generateGroqHistory(basePrice: number): Array<{ date: string; price: number; shop: string }> {
   const points = []
   const now = new Date()
   let price = basePrice * 1.2

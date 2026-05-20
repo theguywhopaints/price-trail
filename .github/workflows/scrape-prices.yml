@@ -1,0 +1,45 @@
+name: Scrape Live Prices
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'   # Every 6 hours
+  workflow_dispatch:          # Manual trigger from GitHub UI
+
+jobs:
+  scrape:
+    runs-on: self-hosted      # Uses your Mac — residential IP bypasses Incapsula
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
+
+      - name: Run price scraper
+        run: node scripts/scrape-prices.js
+        env:
+          SCRAPE_QUERIES: ${{ vars.SCRAPE_QUERIES }}   # Optional: override from GitHub repo vars
+
+      - name: Commit scraped prices if changed
+        run: |
+          git config user.name  "PriceTrail Bot"
+          git config user.email "bot@pricetrail.app"
+          git add src/data/scraped-prices.json
+          if git diff --staged --quiet; then
+            echo "No price changes — nothing to commit."
+          else
+            git commit -m "chore: refresh scraped prices $(date -u +%Y-%m-%dT%H:%M)"
+            git push
+          fi

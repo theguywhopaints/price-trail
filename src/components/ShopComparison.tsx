@@ -48,14 +48,18 @@ export default function ShopComparison({ prices, productName = '', priceSource }
 
   const displayed = showAll ? filtered : filtered.slice(0, 5)
   const lowestPrice = Math.min(...prices.map((p) => p.price))
+  const hasEstimated = prices.some((p) => p.estimated)
 
   return (
     <div className="bg-gray-900 rounded-2xl p-6 border border-gray-800">
-      {priceSource === 'groq' && (
+      {(priceSource === 'groq' || hasEstimated) && (
         <div className="flex items-start gap-2 mb-4 p-3 bg-yellow-500/8 border border-yellow-500/20 rounded-xl">
           <AlertCircle size={14} className="text-yellow-400 flex-shrink-0 mt-0.5" />
           <p className="text-yellow-300/80 text-xs leading-relaxed">
-            <strong className="text-yellow-300">AI-estimated prices</strong> — based on Groq&apos;s training data and may not reflect today&apos;s exact prices. Click the search button next to each store to verify the live price before purchasing.
+            {priceSource === 'groq'
+              ? <><strong className="text-yellow-300">AI-estimated prices</strong> — may not reflect today&apos;s exact prices. Click View next to each store to verify before purchasing.</>
+              : <><strong className="text-yellow-300">Stores marked ~est.</strong> — price is AI-estimated because the retailer blocks direct scraping. Click View to verify the live price.</>
+            }
           </p>
         </div>
       )}
@@ -111,6 +115,9 @@ export default function ShopComparison({ prices, productName = '', priceSource }
                     <span className="flex items-center gap-1 text-xs text-purple-400">
                       <MapPin size={10} /> Local
                     </span>
+                  )}
+                  {shop.estimated && (
+                    <span className="text-xs text-yellow-500/80 bg-yellow-500/10 px-2 py-0.5 rounded-full" title="AI-estimated — click View to verify">~est.</span>
                   )}
                   {!shop.inStock && (
                     <span className="text-xs text-red-400 bg-red-500/10 px-2 py-0.5 rounded-full">Out of Stock</span>
