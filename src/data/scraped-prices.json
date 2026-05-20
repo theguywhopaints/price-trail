@@ -46,34 +46,6 @@
     ],
     "scrapedAt": "2026-05-20T13:35:10.512Z"
   },
-  "iphone 15 pro": {
-    "prices": [
-      {
-        "shop": "Harvey Norman",
-        "price": 29.95,
-        "currency": "AUD",
-        "inStock": true,
-        "url": "https://www.harveynorman.com.au/cygnett-aeroshield-iphone-15-pro-max-clearr.html",
-        "lastUpdated": "2026-05-20T13:35:20.132Z",
-        "shipping": "Check site"
-      }
-    ],
-    "scrapedAt": "2026-05-20T13:35:56.687Z"
-  },
-  "samsung galaxy s24 ultra": {
-    "prices": [
-      {
-        "shop": "Harvey Norman",
-        "price": 149,
-        "currency": "AUD",
-        "inStock": true,
-        "url": "https://www.harveynorman.com.au/freewell-pack-of-4-nd-filter-set-for-samsung-galaxy-s23-s24-ultra.html",
-        "lastUpdated": "2026-05-20T13:36:05.967Z",
-        "shipping": "Check site"
-      }
-    ],
-    "scrapedAt": "2026-05-20T13:36:42.186Z"
-  },
   "sony ps5 slim": {
     "prices": [],
     "scrapedAt": "2026-05-20T13:37:27.658Z"
