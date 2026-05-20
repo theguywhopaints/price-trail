@@ -73,8 +73,10 @@ const RETAILERS = {
     extractPrices: () => {
       const items = []
       document.querySelectorAll('[data-testid="product-card"], [class*="ProductCard"]').forEach((el) => {
-        const name = el.querySelector('[data-testid*="name"], [data-testid*="title"], [class*="name"], [class*="title"], h2, h3')?.textContent?.trim()
-        const price = el.querySelector('[data-testid*="price"], [class*="price"], [class*="Price"]')?.textContent?.trim()
+        // Cast a wide net — grab ALL text nodes if specific selectors miss
+        const nameEl = el.querySelector('[data-testid*="name"], [data-testid*="title"], [class*="name"], [class*="title"], h1, h2, h3, h4, p')
+        const name = nameEl?.textContent?.trim() || el.textContent?.split('\n').map(s => s.trim()).filter(s => s.length > 5)[0] || ''
+        const price = el.querySelector('[data-testid*="price"], [class*="price"], [class*="Price"], [class*="amount"]')?.textContent?.trim()
         const link = el.querySelector('a')?.href
         if (name && price) items.push({ name, price, link })
       })
@@ -108,17 +110,18 @@ function parsePrice(text) {
 
 function bestMatchPrice(items, query) {
   if (!items || items.length === 0) return null
-  const q = query.toLowerCase()
+  const q = query.toLowerCase().replace(/[-]/g, '')  // "wh-1000xm5" → "wh1000xm5"
   const tokens = q.split(/\s+/).filter((t) => t.length > 2)
+  const minRequired = Math.ceil(tokens.length * 0.4)  // need at least 40% of tokens to match
 
   const scored = items
     .map((item) => {
-      const name = (item.name || '').toLowerCase()
+      const name = (item.name || '').toLowerCase().replace(/[-]/g, '')
       const matches = tokens.filter((t) => name.includes(t)).length
       const price = parsePrice(item.price)
       return { ...item, score: matches, price }
     })
-    .filter((i) => i.score > 0 && i.price > 0)
+    .filter((i) => i.score >= minRequired && i.price > 0)
     .sort((a, b) => b.score - a.score || a.price - b.price)
 
   return scored[0] || null
@@ -201,17 +204,21 @@ async function main() {
         'LG OLED C3 55 inch',
       ])
 
-  console.log(`\nScraping ${queries.length} products × ${Object.keys(RETAILERS).length} retailers (stealth mode)\n`)
+  console.log(`\nScraping ${queries.length} products × ${Object.keys(RETAILERS).length} retailers (headed mode — bypasses Incapsula)\n`)
 
-  // Stealth browser — masks headless signals that Incapsula detects
+  // headless: false — real visible browser on Mac self-hosted runner.
+  // Incapsula cannot detect headless because there is nothing to detect.
+  // Window is positioned far off-screen so it doesn't disrupt the desktop.
   const browser = await chromium.launch({
-    headless: true,
+    headless: false,
     args: [
-      '--disable-blink-features=AutomationControlled',
       '--no-sandbox',
       '--disable-setuid-sandbox',
       '--disable-infobars',
       '--disable-dev-shm-usage',
+      '--window-position=-32000,0',
+      '--window-size=1440,900',
+      '--disable-blink-features=AutomationControlled',
     ],
   })
 
@@ -227,11 +234,41 @@ async function main() {
     },
   })
 
-  // Override webdriver flag that Incapsula looks for
+  // Belt-and-suspenders stealth patches (belt = headless:false, suspenders = these)
   await context.addInitScript(() => {
     Object.defineProperty(navigator, 'webdriver', { get: () => undefined })
-    Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] })
-    window.chrome = { runtime: {}, loadTimes: () => {}, csi: () => {} }
+    // Realistic plugins list (not just an array of numbers)
+    Object.defineProperty(navigator, 'plugins', {
+      get: () => {
+        const p = Object.create(PluginArray.prototype)
+        Object.defineProperty(p, 'length', { get: () => 3 })
+        return p
+      },
+    })
+    Object.defineProperty(navigator, 'languages', { get: () => ['en-AU', 'en'] })
+    Object.defineProperty(navigator, 'vendor', { get: () => 'Google Inc.' })
+    Object.defineProperty(navigator, 'platform', { get: () => 'MacIntel' })
+    Object.defineProperty(navigator, 'hardwareConcurrency', { get: () => 8 })
+    // Full chrome object expected by Incapsula fingerprinting
+    window.chrome = {
+      app: { isInstalled: false, InstallState: { DISABLED: 'disabled', INSTALLED: 'installed', NOT_INSTALLED: 'not_installed' }, RunningState: { CANNOT_RUN: 'cannot_run', READY_TO_RUN: 'ready_to_run', RUNNING: 'running' } },
+      runtime: {
+        PlatformOs: { MAC: 'mac', WIN: 'win', ANDROID: 'android', CROS: 'cros', LINUX: 'linux', OPENBSD: 'openbsd' },
+        PlatformArch: { ARM: 'arm', X86_32: 'x86-32', X86_64: 'x86-64' },
+        RequestUpdateCheckStatus: { THROTTLED: 'throttled', NO_UPDATE: 'no_update', UPDATE_AVAILABLE: 'update_available' },
+        OnInstalledReason: { INSTALL: 'install', UPDATE: 'update', CHROME_UPDATE: 'chrome_update', SHARED_MODULE_UPDATE: 'shared_module_update' },
+        OnRestartRequiredReason: { APP_UPDATE: 'app_update', OS_UPDATE: 'os_update', PERIODIC: 'periodic' },
+        id: undefined,
+        connect: () => {},
+        sendMessage: () => {},
+      },
+      loadTimes: () => ({}),
+      csi: () => ({}),
+    }
+    // Patch permissions so notifications don't say 'denied' (Incapsula check)
+    const origQuery = window.navigator.permissions.query.bind(navigator.permissions)
+    window.navigator.permissions.query = (params) =>
+      params.name === 'notifications' ? Promise.resolve({ state: Notification.permission }) : origQuery(params)
   })
 
   for (const query of queries) {
