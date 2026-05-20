@@ -48,8 +48,11 @@ export async function GET(req: NextRequest) {
   // Merge all sources: cached (Playwright) > StaticIce > Google Shopping > Groq estimate
   const liveByShop = new Map<string, ShopPrice>()
 
-  // StaticIce + Google Shopping (real, live)
+  // StaticIce + Google Shopping (real, live) — skip StaticIce prices older than 7 days
+  const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
   for (const p of [...staticPrices, ...googlePrices]) {
+    const updatedAt = new Date(p.lastUpdated).getTime()
+    if (staticPrices.includes(p) && updatedAt < sevenDaysAgo) continue  // stale StaticIce price
     const existing = liveByShop.get(p.shop)
     if (!existing || p.price < existing.price) liveByShop.set(p.shop, p)
   }

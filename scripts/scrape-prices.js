@@ -11,6 +11,21 @@ const path = require('path')
 // ─── Retailer scrape configs ────────────────────────────────────────────────
 
 const RETAILERS = {
+  'CameraPro': {
+    searchUrl: (q) => `https://www.camerapro.com.au/catalogsearch/result/?q=${encodeURIComponent(q)}`,
+    waitFor: '.products-grid .product-item, .product-items .item',
+    extractPrices: () => {
+      const items = []
+      document.querySelectorAll('.product-item, .item.product').forEach((el) => {
+        const name = el.querySelector('.product-item-name, .product-name')?.textContent?.trim()
+        const price = el.querySelector('.price-box .price, .special-price .price, .regular-price .price')?.textContent?.trim()
+        const link = el.querySelector('a.product-item-link, a')?.href
+        if (name && price) items.push({ name, price, link })
+      })
+      return items
+    },
+  },
+
   'Harvey Norman': {
     searchUrl: (q) => `https://www.harveynorman.com.au/catalogsearch/result/?q=${encodeURIComponent(q)}`,
     waitFor: '[data-product-id], .product-item-info, .hn-product-tile, [class*="product"]',
