@@ -1,5 +1,5 @@
 {
-  "_lastRun": "2026-05-20T09:56:51.082Z",
+  "_lastRun": "2026-05-20T13:26:12.560Z",
   "_queries": [
     "Sony ZV-E10 16-50mm kit",
     "Sony WH-1000XM5",
@@ -8,5 +8,139 @@
     "Sony PS5 Slim",
     "MacBook Air M3",
     "LG OLED C3 55 inch"
-  ]
+  ],
+  "sony zv-e10 16-50mm kit": {
+    "prices": [
+      {
+        "shop": "Harvey Norman",
+        "price": 988,
+        "currency": "AUD",
+        "inStock": true,
+        "url": "https://www.harveynorman.com.au/sony-alpha-zv-e10-mirrorless-camera-with-16-50mm-lens-kit-black-1.html",
+        "lastUpdated": "2026-05-20T13:20:43.423Z",
+        "shipping": "Check site"
+      },
+      {
+        "shop": "CameraPro",
+        "price": 997,
+        "currency": "AUD",
+        "inStock": true,
+        "url": "https://www.camerapro.com.au/catalog/product/view/id/11246/s/11246-sony-zv-e10-mirrorless-camera-with-16-50mm-lens-black/category/1431/",
+        "lastUpdated": "2026-05-20T13:20:35.912Z",
+        "shipping": "Check site"
+      }
+    ],
+    "scrapedAt": "2026-05-20T13:21:22.284Z"
+  },
+  "sony wh-1000xm5": {
+    "prices": [
+      {
+        "shop": "CameraPro",
+        "price": 17,
+        "currency": "AUD",
+        "inStock": true,
+        "url": "https://www.camerapro.com.au/12011-sony-front-lens-cap-49mm.html",
+        "lastUpdated": "2026-05-20T13:21:26.832Z",
+        "shipping": "Check site"
+      },
+      {
+        "shop": "Harvey Norman",
+        "price": 448,
+        "currency": "AUD",
+        "inStock": true,
+        "url": "https://www.harveynorman.com.au/sony-wh-1000xm5-wireless-noise-cancelling-headphones-pink.html",
+        "lastUpdated": "2026-05-20T13:21:32.653Z",
+        "shipping": "Check site"
+      }
+    ],
+    "scrapedAt": "2026-05-20T13:22:09.303Z"
+  },
+  "iphone 15 pro": {
+    "prices": [
+      {
+        "shop": "Harvey Norman",
+        "price": 1,
+        "currency": "AUD",
+        "inStock": true,
+        "url": "https://www.harveynorman.com.au/itskins-origin-made-in-australia-iphone-15-pro-black.html",
+        "lastUpdated": "2026-05-20T13:22:20.136Z",
+        "shipping": "Check site"
+      },
+      {
+        "shop": "CameraPro",
+        "price": 69,
+        "currency": "AUD",
+        "inStock": true,
+        "url": "https://www.camerapro.com.au/11659-peak-design-mobile-everyday-fabric-case-iphone-13-pro-charcoal.html",
+        "lastUpdated": "2026-05-20T13:22:13.709Z",
+        "shipping": "Check site"
+      }
+    ],
+    "scrapedAt": "2026-05-20T13:22:56.630Z"
+  },
+  "samsung galaxy s24 ultra": {
+    "prices": [
+      {
+        "shop": "Harvey Norman",
+        "price": 1,
+        "currency": "AUD",
+        "inStock": true,
+        "url": "https://www.harveynorman.com.au/panzer-glass-hoops-camera-lens-protector-for-samsung-galaxy-s24-ultra.html",
+        "lastUpdated": "2026-05-20T13:23:06.199Z",
+        "shipping": "Check site"
+      },
+      {
+        "shop": "CameraPro",
+        "price": 47,
+        "currency": "AUD",
+        "inStock": true,
+        "url": "https://www.camerapro.com.au/12203-peak-design-mobile-everyday-fabric-case-samsung-galaxy-s22-ultra-charcoal.html",
+        "lastUpdated": "2026-05-20T13:23:00.262Z",
+        "shipping": "Check site"
+      }
+    ],
+    "scrapedAt": "2026-05-20T13:23:42.729Z"
+  },
+  "sony ps5 slim": {
+    "prices": [
+      {
+        "shop": "Harvey Norman",
+        "price": 70,
+        "currency": "AUD",
+        "inStock": true,
+        "url": "https://www.harveynorman.com.au/blade-ps5-dragon-ball-z-slim-silicone-cover.html",
+        "lastUpdated": "2026-05-20T13:23:53.240Z",
+        "shipping": "Check site"
+      }
+    ],
+    "scrapedAt": "2026-05-20T13:24:29.795Z"
+  },
+  "macbook air m3": {
+    "prices": [
+      {
+        "shop": "Harvey Norman",
+        "price": 58,
+        "currency": "AUD",
+        "inStock": true,
+        "url": "https://www.harveynorman.com.au/3sixt-hardshell-case-for-macbook-air-13-inch-m5-m4-m3-m2-clear.html",
+        "lastUpdated": "2026-05-20T13:24:48.800Z",
+        "shipping": "Check site"
+      }
+    ],
+    "scrapedAt": "2026-05-20T13:25:25.185Z"
+  },
+  "lg oled c3 55 inch": {
+    "prices": [
+      {
+        "shop": "Harvey Norman",
+        "price": 978,
+        "currency": "AUD",
+        "inStock": true,
+        "url": "https://www.harveynorman.com.au/lg-ultragear-27-inch-qhd-oled-gaming-monitor.html",
+        "lastUpdated": "2026-05-20T13:25:35.514Z",
+        "shipping": "Check site"
+      }
+    ],
+    "scrapedAt": "2026-05-20T13:26:12.308Z"
+  }
 }
