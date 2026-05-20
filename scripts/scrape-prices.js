@@ -1,9 +1,7 @@
 /**
- * Playwright price scraper for AU retailers that block server-side requests.
- * Runs on self-hosted GitHub Actions runner (residential IP bypasses Incapsula).
- *
- * Usage: node scripts/scrape-prices.js
- * Output: src/data/scraped-prices.json
+ * Playwright price scraper for AU retailers.
+ * Runs on self-hosted GitHub Actions runner (residential IP bypasses IP-level blocks).
+ * Uses stealth context to bypass headless-browser detection (Incapsula).
  */
 
 const { chromium } = require('playwright')
@@ -15,56 +13,68 @@ const path = require('path')
 const RETAILERS = {
   'Harvey Norman': {
     searchUrl: (q) => `https://www.harveynorman.com.au/catalogsearch/result/?q=${encodeURIComponent(q)}`,
-    waitFor: '.product-item-info, .product-item',
+    waitFor: '[data-product-id], .product-item-info, .hn-product-tile, [class*="product"]',
     extractPrices: () => {
       const items = []
-      document.querySelectorAll('.product-item').forEach((el) => {
-        const name = el.querySelector('.product-item-name a, .product-name')?.textContent?.trim()
-        const priceEl = el.querySelector('[data-price-type="finalPrice"] .price, .price-final_price .price, .price')
+      // Try multiple selector strategies Harvey Norman may use
+      const cards = [
+        ...document.querySelectorAll('[data-product-id]'),
+        ...document.querySelectorAll('.hn-product-tile'),
+        ...document.querySelectorAll('[class*="ProductCard"]'),
+        ...document.querySelectorAll('[class*="product-item"]'),
+      ]
+      const seen = new Set()
+      cards.forEach((el) => {
+        if (seen.has(el)) return
+        seen.add(el)
+        const name = el.querySelector('[class*="name"], [class*="title"], h2, h3')?.textContent?.trim()
+        const priceEl = el.querySelector('[class*="price"], [data-price], .special-price, .regular-price')
         const price = priceEl?.textContent?.trim()
-        const link = el.querySelector('a.product-item-link, a')?.href
+        const link = el.querySelector('a')?.href || el.closest('a')?.href
         if (name && price) items.push({ name, price, link })
       })
       return items
     },
   },
+
   'JB Hi-Fi': {
     searchUrl: (q) => `https://www.jbhifi.com.au/search?q=${encodeURIComponent(q)}`,
-    waitFor: '[data-testid="product-card"], .product-card, article',
+    waitFor: '[data-testid="product-card"], [class*="ProductCard"], article[class*="product"]',
     extractPrices: () => {
       const items = []
-      document.querySelectorAll('[data-testid="product-card"], article.product-card, [class*="ProductCard"]').forEach((el) => {
-        const name = el.querySelector('h3, h2, [class*="title"], [data-testid="product-title"]')?.textContent?.trim()
-        const priceEl = el.querySelector('[class*="price"], [data-testid*="price"]')
-        const price = priceEl?.textContent?.trim()
+      document.querySelectorAll('[data-testid="product-card"], [class*="ProductCard"], article').forEach((el) => {
+        const name = el.querySelector('[data-testid="product-title"], [class*="title"], [class*="name"], h2, h3')?.textContent?.trim()
+        const price = el.querySelector('[data-testid*="price"], [class*="price"], [class*="Price"]')?.textContent?.trim()
         const link = el.querySelector('a')?.href
         if (name && price) items.push({ name, price, link })
       })
       return items
     },
   },
+
   'The Good Guys': {
     searchUrl: (q) => `https://www.thegoodguys.com.au/SearchDisplay?searchTerm=${encodeURIComponent(q)}`,
-    waitFor: '.product-tile, [class*="ProductTile"]',
+    waitFor: '[data-testid="product-card"], [class*="ProductCard"]',
     extractPrices: () => {
       const items = []
-      document.querySelectorAll('.product-tile, [class*="ProductTile"]').forEach((el) => {
-        const name = el.querySelector('[class*="name"], [class*="title"], h3')?.textContent?.trim()
-        const price = el.querySelector('[class*="price"]')?.textContent?.trim()
+      document.querySelectorAll('[data-testid="product-card"], [class*="ProductCard"]').forEach((el) => {
+        const name = el.querySelector('[data-testid*="name"], [data-testid*="title"], [class*="name"], [class*="title"], h2, h3')?.textContent?.trim()
+        const price = el.querySelector('[data-testid*="price"], [class*="price"], [class*="Price"]')?.textContent?.trim()
         const link = el.querySelector('a')?.href
         if (name && price) items.push({ name, price, link })
       })
       return items
     },
   },
+
   'Bing Lee': {
     searchUrl: (q) => `https://www.binglee.com.au/search?q=${encodeURIComponent(q)}`,
-    waitFor: '.product-item, [class*="product"]',
+    waitFor: '[class*="ProductCard"], [class*="product-card"], [data-product], .product',
     extractPrices: () => {
       const items = []
-      document.querySelectorAll('.product-item, [class*="ProductItem"]').forEach((el) => {
-        const name = el.querySelector('.product-name, h2, [class*="name"]')?.textContent?.trim()
-        const price = el.querySelector('.price, [class*="price"]')?.textContent?.trim()
+      document.querySelectorAll('[class*="ProductCard"], [class*="product-card"], [data-product], .product-item').forEach((el) => {
+        const name = el.querySelector('[class*="name"], [class*="title"], h2, h3')?.textContent?.trim()
+        const price = el.querySelector('[class*="price"], [class*="Price"]')?.textContent?.trim()
         const link = el.querySelector('a')?.href
         if (name && price) items.push({ name, price, link })
       })
@@ -84,12 +94,11 @@ function parsePrice(text) {
 function bestMatchPrice(items, query) {
   if (!items || items.length === 0) return null
   const q = query.toLowerCase()
+  const tokens = q.split(/\s+/).filter((t) => t.length > 2)
 
-  // Score each item by how well the name matches the query tokens
   const scored = items
     .map((item) => {
       const name = (item.name || '').toLowerCase()
-      const tokens = q.split(/\s+/).filter((t) => t.length > 2)
       const matches = tokens.filter((t) => name.includes(t)).length
       const price = parsePrice(item.price)
       return { ...item, score: matches, price }
@@ -100,39 +109,40 @@ function bestMatchPrice(items, query) {
   return scored[0] || null
 }
 
-async function scrapeRetailer(browser, retailerName, config, query) {
-  const page = await browser.newPage()
+async function scrapeRetailer(context, retailerName, config, query) {
+  const page = await context.newPage()
   try {
     console.log(`  → ${retailerName}: searching for "${query}"`)
+
     await page.goto(config.searchUrl(query), {
       waitUntil: 'domcontentloaded',
-      timeout: 20000,
+      timeout: 25000,
     })
 
-    // Wait for product cards to appear (up to 8s)
+    // Extra wait for JS-rendered content
     try {
-      await page.waitForSelector(config.waitFor, { timeout: 8000 })
+      await page.waitForSelector(config.waitFor, { timeout: 10000 })
     } catch {
-      console.log(`    ⚠ ${retailerName}: no product cards found within 8s`)
+      // selector timed out — still try to extract whatever loaded
     }
+
+    // Additional settle time for dynamic content
+    await page.waitForTimeout(2000)
 
     const items = await page.evaluate(config.extractPrices)
 
-    // Debug: log what element counts we see on the page
-    const debugInfo = await page.evaluate(() => {
-      const selectors = [
-        '.product-item', '[data-testid="product-card"]', 'article',
-        '[class*="ProductCard"]', '[class*="product-card"]', '[class*="ProductTile"]',
-        '[class*="product-tile"]', '[class*="ProductItem"]', '[class*="product-item"]',
-        '[class*="SearchResult"]', '[class*="search-result"]', '.result',
+    // Debug: which selectors matched
+    const found = await page.evaluate(() => {
+      const checks = [
+        '[data-testid="product-card"]', '[data-product-id]', '[class*="ProductCard"]',
+        '[class*="product-card"]', '[class*="ProductTile"]', '[class*="product-tile"]',
+        '[class*="ProductItem"]', 'article', '.product',
       ]
-      return selectors.map(s => `${s}: ${document.querySelectorAll(s).length}`).filter(x => !x.endsWith(': 0'))
+      return checks.map(s => `${s}:${document.querySelectorAll(s).length}`).filter(x => !x.endsWith(':0'))
     })
-    if (debugInfo.length) console.log(`    [debug] Found: ${debugInfo.join(', ')}`)
-    else console.log(`    [debug] No known product selectors found on page`)
+    console.log(`    [debug] ${found.length ? found.join(', ') : 'no selectors matched'} | extracted ${items.length} items`)
 
     const best = bestMatchPrice(items, query)
-
     if (best) {
       console.log(`    ✓ ${retailerName}: ${best.name} — $${best.price}`)
       return {
@@ -149,7 +159,7 @@ async function scrapeRetailer(browser, retailerName, config, query) {
       return null
     }
   } catch (err) {
-    console.log(`    ✗ ${retailerName}: error — ${err.message}`)
+    console.log(`    ✗ ${retailerName}: error — ${err.message.split('\n')[0]}`)
     return null
   } finally {
     await page.close()
@@ -159,16 +169,10 @@ async function scrapeRetailer(browser, retailerName, config, query) {
 // ─── Main ────────────────────────────────────────────────────────────────────
 
 async function main() {
-  // Load existing cache to preserve data for queries we won't re-scrape
   const outPath = path.join(__dirname, '..', 'src', 'data', 'scraped-prices.json')
   let cache = {}
-  try {
-    cache = JSON.parse(fs.readFileSync(outPath, 'utf8'))
-  } catch {
-    // fresh start
-  }
+  try { cache = JSON.parse(fs.readFileSync(outPath, 'utf8')) } catch { }
 
-  // Read queries to scrape — from file or env, default to a base set
   const QUERIES_ENV = process.env.SCRAPE_QUERIES
   const queries = QUERIES_ENV
     ? QUERIES_ENV.split('|')
@@ -182,19 +186,47 @@ async function main() {
         'LG OLED C3 55 inch',
       ])
 
-  console.log(`\nStarting price scrape for ${queries.length} products across ${Object.keys(RETAILERS).length} retailers...\n`)
+  console.log(`\nScraping ${queries.length} products × ${Object.keys(RETAILERS).length} retailers (stealth mode)\n`)
 
-  const browser = await chromium.launch({ headless: true })
+  // Stealth browser — masks headless signals that Incapsula detects
+  const browser = await chromium.launch({
+    headless: true,
+    args: [
+      '--disable-blink-features=AutomationControlled',
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-infobars',
+      '--disable-dev-shm-usage',
+    ],
+  })
+
+  // Shared context with real-browser fingerprint
+  const context = await browser.newContext({
+    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+    viewport: { width: 1440, height: 900 },
+    locale: 'en-AU',
+    timezoneId: 'Australia/Sydney',
+    extraHTTPHeaders: {
+      'Accept-Language': 'en-AU,en;q=0.9',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+    },
+  })
+
+  // Override webdriver flag that Incapsula looks for
+  await context.addInitScript(() => {
+    Object.defineProperty(navigator, 'webdriver', { get: () => undefined })
+    Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3] })
+    window.chrome = { runtime: {}, loadTimes: () => {}, csi: () => {} }
+  })
 
   for (const query of queries) {
     console.log(`\n[${query}]`)
     const results = []
 
     for (const [name, config] of Object.entries(RETAILERS)) {
-      const result = await scrapeRetailer(browser, name, config, query)
+      const result = await scrapeRetailer(context, name, config, query)
       if (result) results.push(result)
-      // Brief pause between retailers to be polite
-      await new Promise((r) => setTimeout(r, 1500))
+      await new Promise((r) => setTimeout(r, 2000))
     }
 
     if (results.length > 0) {
@@ -202,17 +234,18 @@ async function main() {
         prices: results.sort((a, b) => a.price - b.price),
         scrapedAt: new Date().toISOString(),
       }
+      console.log(`  → Saved ${results.length} prices for "${query}"`)
     }
   }
 
+  await context.close()
   await browser.close()
 
-  // Keep track of which queries this cache covers
   cache._queries = queries
   cache._lastRun = new Date().toISOString()
 
   fs.writeFileSync(outPath, JSON.stringify(cache, null, 2))
-  console.log(`\n✅ Scraped prices saved to src/data/scraped-prices.json`)
+  console.log(`\n✅ Done — saved to src/data/scraped-prices.json`)
 }
 
 main().catch((err) => {
