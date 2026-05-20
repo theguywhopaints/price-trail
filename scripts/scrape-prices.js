@@ -109,7 +109,9 @@ function parsePrice(text) {
 }
 
 // Reject accessories — we want the main product, not cases/covers/caps for it
-const ACCESSORY_RE = /\b(case|cover|cap|protector|sleeve|skin|mount|clip|stand|holder|charger|cable|adapter|strap|screen guard|tempered glass|silicone|pouch|bumper|shell|hardshell|softshell)\b/i
+// "shield" without \b catches "Aeroshield", "RhinoShield" etc.
+// "\bfilter\b" catches "ND Filter Set", "Polarizing Filter" etc.
+const ACCESSORY_RE = /\b(case|cover|cap|protector|sleeve|skin|mount|clip|stand|holder|charger|cable|adapter|strap|tempered glass|silicone|pouch|bumper|hardshell|softshell)\b|shield|\bfilter\b/i
 
 function bestMatchPrice(items, query) {
   if (!items || items.length === 0) return null
