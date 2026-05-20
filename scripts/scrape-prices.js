@@ -117,6 +117,20 @@ async function scrapeRetailer(browser, retailerName, config, query) {
     }
 
     const items = await page.evaluate(config.extractPrices)
+
+    // Debug: log what element counts we see on the page
+    const debugInfo = await page.evaluate(() => {
+      const selectors = [
+        '.product-item', '[data-testid="product-card"]', 'article',
+        '[class*="ProductCard"]', '[class*="product-card"]', '[class*="ProductTile"]',
+        '[class*="product-tile"]', '[class*="ProductItem"]', '[class*="product-item"]',
+        '[class*="SearchResult"]', '[class*="search-result"]', '.result',
+      ]
+      return selectors.map(s => `${s}: ${document.querySelectorAll(s).length}`).filter(x => !x.endsWith(': 0'))
+    })
+    if (debugInfo.length) console.log(`    [debug] Found: ${debugInfo.join(', ')}`)
+    else console.log(`    [debug] No known product selectors found on page`)
+
     const best = bestMatchPrice(items, query)
 
     if (best) {
