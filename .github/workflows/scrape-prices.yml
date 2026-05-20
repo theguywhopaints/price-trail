@@ -5,6 +5,9 @@ on:
     - cron: '0 */6 * * *'   # Every 6 hours
   workflow_dispatch:          # Manual trigger from GitHub UI
 
+permissions:
+  contents: write             # Allow the bot to commit scraped prices back to the repo
+
 jobs:
   scrape:
     runs-on: self-hosted      # Uses your Mac — residential IP bypasses Incapsula
@@ -14,6 +17,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -30,12 +34,13 @@ jobs:
       - name: Run price scraper
         run: node scripts/scrape-prices.js
         env:
-          SCRAPE_QUERIES: ${{ vars.SCRAPE_QUERIES }}   # Optional: override from GitHub repo vars
+          SCRAPE_QUERIES: ${{ vars.SCRAPE_QUERIES }}
 
       - name: Commit scraped prices if changed
         run: |
           git config user.name  "PriceTrail Bot"
           git config user.email "bot@pricetrail.app"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/theguywhopaints/price-trail.git
           git add src/data/scraped-prices.json
           if git diff --staged --quiet; then
             echo "No price changes — nothing to commit."
