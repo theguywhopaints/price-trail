@@ -108,11 +108,16 @@ function parsePrice(text) {
   return match ? parseFloat(match[0]) : 0
 }
 
+// Reject accessories — we want the main product, not cases/covers/caps for it
+const ACCESSORY_RE = /\b(case|cover|cap|protector|sleeve|skin|mount|clip|stand|holder|charger|cable|adapter|strap|screen guard|tempered glass|silicone|pouch|bumper|shell|hardshell|softshell)\b/i
+
 function bestMatchPrice(items, query) {
   if (!items || items.length === 0) return null
-  const q = query.toLowerCase().replace(/[-]/g, '')  // "wh-1000xm5" → "wh1000xm5"
-  const tokens = q.split(/\s+/).filter((t) => t.length > 2)
-  const minRequired = Math.ceil(tokens.length * 0.4)  // need at least 40% of tokens to match
+  const q = query.toLowerCase().replace(/[-]/g, '')
+  // Include 2-char tokens so "lg", "c3", "55" all act as discriminators
+  const tokens = q.split(/\s+/).filter((t) => t.length >= 2)
+  // Require 70% of tokens to match (minimum 2) so accessories with partial overlap get rejected
+  const minRequired = Math.max(2, Math.ceil(tokens.length * 0.7))
 
   const scored = items
     .map((item) => {
@@ -121,7 +126,12 @@ function bestMatchPrice(items, query) {
       const price = parsePrice(item.price)
       return { ...item, score: matches, price }
     })
-    .filter((i) => i.score >= minRequired && i.price > 0)
+    .filter((i) => {
+      if (i.score < minRequired) return false
+      if (i.price < 25) return false          // $1 cases, $17 lens caps — all wrong
+      if (ACCESSORY_RE.test(i.name)) return false  // reject even if it scores well
+      return true
+    })
     .sort((a, b) => b.score - a.score || a.price - b.price)
 
   return scored[0] || null
@@ -281,12 +291,15 @@ async function main() {
       await new Promise((r) => setTimeout(r, 2000))
     }
 
+    // Always write (even empty) so stale wrong results don't persist across runs
+    cache[query.toLowerCase()] = {
+      prices: results.sort((a, b) => a.price - b.price),
+      scrapedAt: new Date().toISOString(),
+    }
     if (results.length > 0) {
-      cache[query.toLowerCase()] = {
-        prices: results.sort((a, b) => a.price - b.price),
-        scrapedAt: new Date().toISOString(),
-      }
       console.log(`  → Saved ${results.length} prices for "${query}"`)
+    } else {
+      console.log(`  → No real prices found for "${query}" (cleared stale cache)`)
     }
   }
 
