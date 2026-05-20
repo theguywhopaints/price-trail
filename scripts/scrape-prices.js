@@ -158,7 +158,7 @@ async function main() {
   const QUERIES_ENV = process.env.SCRAPE_QUERIES
   const queries = QUERIES_ENV
     ? QUERIES_ENV.split('|')
-    : cache._queries || [
+    : (cache._queries && cache._queries.length > 0 ? cache._queries : [
         'Sony ZV-E10 16-50mm kit',
         'Sony WH-1000XM5',
         'iPhone 15 Pro',
@@ -166,7 +166,7 @@ async function main() {
         'Sony PS5 Slim',
         'MacBook Air M3',
         'LG OLED C3 55 inch',
-      ]
+      ])
 
   console.log(`\nStarting price scrape for ${queries.length} products across ${Object.keys(RETAILERS).length} retailers...\n`)
 
