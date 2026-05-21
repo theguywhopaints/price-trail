@@ -66,9 +66,13 @@ export function generateGroqHistory(basePrice: number): Array<{ date: string; pr
     points.push({
       date: date.toISOString().split('T')[0],
       price: Math.round(price * multiplier * 100) / 100,
-      shop: 'JB Hi-Fi',
+      shop: 'Harvey Norman',
     })
   }
+
+  // Anchor today's point to the actual real price so the graph matches the "Best price" card
+  points[points.length - 1].price = Math.round(basePrice * 100) / 100
+
   return points
 }
 
