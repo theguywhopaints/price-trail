@@ -2,7 +2,7 @@ name: Scrape Live Prices
 
 on:
   schedule:
-    - cron: '0 */6 * * *'   # Every 6 hours
+    - cron: '0 1,13 * * *'  # Twice daily: 1 AM and 1 PM AEST (while Mac likely idle)
   workflow_dispatch:          # Manual trigger from GitHub UI
 
 permissions:

@@ -1,7 +1,8 @@
 /**
  * Playwright price scraper for AU retailers.
  * Runs on self-hosted GitHub Actions runner (residential IP bypasses IP-level blocks).
- * Uses stealth context to bypass headless-browser detection (Incapsula).
+ * Uses headless:false on Mac runner to bypass Incapsula bot detection on Harvey Norman.
+ * --start-minimized keeps the browser in the Dock rather than as a full screen window.
  */
 
 const { chromium } = require('playwright')
@@ -52,21 +53,6 @@ const RETAILERS = {
     },
   },
 
-  'JB Hi-Fi': {
-    searchUrl: (q) => `https://www.jbhifi.com.au/search?q=${encodeURIComponent(q)}`,
-    waitFor: '[data-testid="product-card"], [class*="ProductCard"], article[class*="product"]',
-    extractPrices: () => {
-      const items = []
-      document.querySelectorAll('[data-testid="product-card"], [class*="ProductCard"], article').forEach((el) => {
-        const name = el.querySelector('[data-testid="product-title"], [class*="title"], [class*="name"], h2, h3')?.textContent?.trim()
-        const price = el.querySelector('[data-testid*="price"], [class*="price"], [class*="Price"]')?.textContent?.trim()
-        const link = el.querySelector('a')?.href
-        if (name && price) items.push({ name, price, link })
-      })
-      return items
-    },
-  },
-
   'The Good Guys': {
     searchUrl: (q) => `https://www.thegoodguys.com.au/SearchDisplay?searchTerm=${encodeURIComponent(q)}`,
     waitFor: '[data-testid="product-card"], [class*="ProductCard"]',
@@ -84,20 +70,8 @@ const RETAILERS = {
     },
   },
 
-  'Bing Lee': {
-    searchUrl: (q) => `https://www.binglee.com.au/search?q=${encodeURIComponent(q)}`,
-    waitFor: '[class*="ProductCard"], [class*="product-card"], [data-product], .product',
-    extractPrices: () => {
-      const items = []
-      document.querySelectorAll('[class*="ProductCard"], [class*="product-card"], [data-product], .product-item').forEach((el) => {
-        const name = el.querySelector('[class*="name"], [class*="title"], h2, h3')?.textContent?.trim()
-        const price = el.querySelector('[class*="price"], [class*="Price"]')?.textContent?.trim()
-        const link = el.querySelector('a')?.href
-        if (name && price) items.push({ name, price, link })
-      })
-      return items
-    },
-  },
+  // JB Hi-Fi and Bing Lee removed — both use Incapsula IP blocking that residential
+  // headless:false cannot bypass. They always return the block page, wasting 25s each.
 }
 
 // ─── Utilities ───────────────────────────────────────────────────────────────
@@ -228,8 +202,8 @@ async function main() {
       '--disable-setuid-sandbox',
       '--disable-infobars',
       '--disable-dev-shm-usage',
-      '--window-position=-32000,0',
-      '--window-size=1440,900',
+      '--start-minimized',          // opens minimized to Dock, not as a full window
+      '--window-size=1,1',          // tiny fallback if start-minimized is ignored
       '--disable-blink-features=AutomationControlled',
     ],
   })
