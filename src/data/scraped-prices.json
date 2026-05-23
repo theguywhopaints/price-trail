@@ -1,5 +1,5 @@
 {
-  "_lastRun": "2026-05-22T09:30:32.980Z",
+  "_lastRun": "2026-05-23T04:37:55.097Z",
   "_queries": [
     "Sony ZV-E10 16-50mm kit",
     "Sony WH-1000XM5",
@@ -10,8 +10,27 @@
     "LG OLED C3 55 inch"
   ],
   "sony zv-e10 16-50mm kit": {
-    "prices": [],
-    "scrapedAt": "2026-05-22T09:25:42.528Z"
+    "prices": [
+      {
+        "shop": "Harvey Norman",
+        "price": 988,
+        "currency": "AUD",
+        "inStock": true,
+        "url": "https://www.harveynorman.com.au/sony-alpha-zv-e10-mirrorless-camera-with-16-50mm-lens-kit-black-1.html",
+        "lastUpdated": "2026-05-23T04:36:02.160Z",
+        "shipping": "Check site"
+      },
+      {
+        "shop": "CameraPro",
+        "price": 997,
+        "currency": "AUD",
+        "inStock": true,
+        "url": "https://www.camerapro.com.au/catalog/product/view/id/11246/s/11246-sony-zv-e10-mirrorless-camera-with-16-50mm-lens-black/category/1431/",
+        "lastUpdated": "2026-05-23T04:35:55.535Z",
+        "shipping": "Check site"
+      }
+    ],
+    "scrapedAt": "2026-05-23T04:36:09.469Z"
   },
   "sony wh-1000xm5": {
     "prices": [
@@ -21,15 +40,15 @@
         "currency": "AUD",
         "inStock": true,
         "url": "https://www.harveynorman.com.au/sony-wh-1000xm5-wireless-noise-cancelling-headphones-pink.html",
-        "lastUpdated": "2026-05-22T09:25:53.028Z",
+        "lastUpdated": "2026-05-23T04:36:17.843Z",
         "shipping": "Check site"
       }
     ],
-    "scrapedAt": "2026-05-22T09:26:29.897Z"
+    "scrapedAt": "2026-05-23T04:36:24.734Z"
   },
   "sony ps5 slim": {
     "prices": [],
-    "scrapedAt": "2026-05-22T09:28:49.962Z"
+    "scrapedAt": "2026-05-23T04:37:12.378Z"
   },
   "macbook air m3": {
     "prices": [
@@ -39,11 +58,11 @@
         "currency": "AUD",
         "inStock": true,
         "url": "https://www.harveynorman.com.au/apple-macbook-air-15-inch-m3-24gb-512gb-ssd-laptop-midnight-2024.html",
-        "lastUpdated": "2026-05-22T09:29:09.324Z",
+        "lastUpdated": "2026-05-23T04:37:31.083Z",
         "shipping": "Check site"
       }
     ],
-    "scrapedAt": "2026-05-22T09:29:45.863Z"
+    "scrapedAt": "2026-05-23T04:37:37.989Z"
   },
   "lg oled c3 55 inch": {
     "prices": [
@@ -53,11 +72,11 @@
         "currency": "AUD",
         "inStock": true,
         "url": "https://www.harveynorman.com.au/lg-55-inch-b6-ai-4k-oled-smart-tv-2026.html",
-        "lastUpdated": "2026-05-22T09:29:56.150Z",
+        "lastUpdated": "2026-05-23T04:37:47.938Z",
         "shipping": "Check site"
       }
     ],
-    "scrapedAt": "2026-05-22T09:30:32.782Z"
+    "scrapedAt": "2026-05-23T04:37:54.982Z"
   },
   "iphone 15 pro": {
     "prices": [
@@ -67,14 +86,14 @@
         "currency": "AUD",
         "inStock": true,
         "url": "https://www.harveynorman.com.au/cygnett-aeromag-iphone-15-pro-max-clearr.html",
-        "lastUpdated": "2026-05-22T09:26:39.130Z",
+        "lastUpdated": "2026-05-23T04:36:33.168Z",
         "shipping": "Check site"
       }
     ],
-    "scrapedAt": "2026-05-22T09:27:15.915Z"
+    "scrapedAt": "2026-05-23T04:36:40.166Z"
   },
   "samsung galaxy s24 ultra": {
     "prices": [],
-    "scrapedAt": "2026-05-22T09:28:01.392Z"
+    "scrapedAt": "2026-05-23T04:36:55.198Z"
   }
 }
