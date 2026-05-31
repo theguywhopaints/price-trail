@@ -1,5 +1,5 @@
 {
-  "_lastRun": "2026-05-30T14:29:20.788Z",
+  "_lastRun": "2026-05-31T05:22:15.436Z",
   "_queries": [
     "Sony ZV-E10 16-50mm kit",
     "Sony WH-1000XM5",
@@ -10,70 +10,51 @@
     "LG OLED C3 55 inch"
   ],
   "sony zv-e10 16-50mm kit": {
+    "prices": [],
+    "scrapedAt": "2026-05-31T05:20:54.289Z"
+  },
+  "sony wh-1000xm5": {
     "prices": [
       {
-        "shop": "CameraPro",
-        "price": 997,
-        "currency": "AUD",
-        "inStock": true,
-        "url": "https://www.camerapro.com.au/catalog/product/view/id/11246/s/11246-sony-zv-e10-mirrorless-camera-with-16-50mm-lens-black/category/1431/",
-        "lastUpdated": "2026-05-30T14:27:38.043Z",
-        "shipping": "Check site"
-      },
-      {
         "shop": "Harvey Norman",
-        "price": 1068,
+        "price": 548,
         "currency": "AUD",
         "inStock": true,
-        "url": "https://www.harveynorman.com.au/sony-alpha-zv-e10-mirrorless-camera-with-16-50mm-lens-kit-black-1.html",
-        "lastUpdated": "2026-05-30T14:27:44.212Z",
+        "url": "https://www.harveynorman.com.au/sony-wh-1000xm5-wireless-noise-cancelling-headphones-pink.html",
+        "lastUpdated": "2026-05-31T05:21:04.134Z",
         "shipping": "Check site"
       }
     ],
-    "scrapedAt": "2026-05-30T14:27:51.749Z"
-  },
-  "sony wh-1000xm5": {
-    "prices": [],
-    "scrapedAt": "2026-05-30T14:28:07.491Z"
+    "scrapedAt": "2026-05-31T05:21:11.197Z"
   },
   "sony ps5 slim": {
     "prices": [],
-    "scrapedAt": "2026-05-30T14:28:51.663Z"
+    "scrapedAt": "2026-05-31T05:21:59.286Z"
   },
   "macbook air m3": {
-    "prices": [
-      {
-        "shop": "Harvey Norman",
-        "price": 2477,
-        "currency": "AUD",
-        "inStock": true,
-        "url": "https://www.harveynorman.com.au/apple-macbook-air-15-inch-m3-24gb-512gb-ssd-laptop-midnight-2024.html",
-        "lastUpdated": "2026-05-30T14:29:00.002Z",
-        "shipping": "Check site"
-      }
-    ],
-    "scrapedAt": "2026-05-30T14:29:07.021Z"
+    "prices": [],
+    "scrapedAt": "2026-05-31T05:22:07.516Z"
   },
   "lg oled c3 55 inch": {
+    "prices": [],
+    "scrapedAt": "2026-05-31T05:22:15.279Z"
+  },
+  "iphone 15 pro": {
     "prices": [
       {
         "shop": "Harvey Norman",
-        "price": 2177,
+        "price": 99.95,
         "currency": "AUD",
         "inStock": true,
-        "url": "https://www.harveynorman.com.au/lg-55-inch-b6-ai-4k-oled-smart-tv-2026.html",
-        "lastUpdated": "2026-05-30T14:29:13.742Z",
+        "url": "https://www.harveynorman.com.au/otterbox-defender-iphone-15-pro-black.html",
+        "lastUpdated": "2026-05-31T05:21:19.881Z",
         "shipping": "Check site"
       }
     ],
-    "scrapedAt": "2026-05-30T14:29:20.663Z"
-  },
-  "iphone 15 pro": {
-    "prices": [],
-    "scrapedAt": "2026-05-30T14:28:21.854Z"
+    "scrapedAt": "2026-05-31T05:21:26.858Z"
   },
   "samsung galaxy s24 ultra": {
     "prices": [],
-    "scrapedAt": "2026-05-30T14:28:34.430Z"
+    "scrapedAt": "2026-05-31T05:21:42.225Z"
   }
 }
